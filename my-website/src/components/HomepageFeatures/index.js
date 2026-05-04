@@ -1,49 +1,69 @@
 import clsx from 'clsx';
 import Heading from '@theme/Heading';
+import Link from '@docusaurus/Link';
 import styles from './styles.module.css';
 
 const FeatureList = [
   {
-    title: 'Easy to Use',
-    Svg: require('@site/static/img/undraw_docusaurus_mountain.svg').default,
-    description: (
-      <>
-        Docusaurus was designed from the ground up to be easily installed and
-        used to get your website up and running quickly.
-      </>
-    ),
+    title: 'Требования',
+    icon: '📋',
+    description: 'Функциональные и нефункциональные требования к системе. Use Cases для ключевых сценариев работы.',
+    link: '/docs/requirements/functional',
+    linkLabel: 'Открыть раздел',
   },
   {
-    title: 'Focus on What Matters',
-    Svg: require('@site/static/img/undraw_docusaurus_tree.svg').default,
-    description: (
-      <>
-        Docusaurus lets you focus on your docs, and we&apos;ll do the chores. Go
-        ahead and move your docs into the <code>docs</code> directory.
-      </>
-    ),
+    title: 'Архитектура',
+    icon: '🏗️',
+    description: 'BPMN-диаграмма процессов, технологии хранения данных, асинхронные взаимодействия (RabbitMQ, gRPC).',
+    link: '/docs/architecture/process',
+    linkLabel: 'Открыть раздел',
   },
   {
-    title: 'Powered by React',
-    Svg: require('@site/static/img/undraw_docusaurus_react.svg').default,
-    description: (
-      <>
-        Extend or customize your website layout by reusing React. Docusaurus can
-        be extended while reusing the same header and footer.
-      </>
-    ),
+    title: 'API Reference',
+    icon: '⚡',
+    description: 'Интерактивная документация REST API в формате Redoc. Эндпоинты, схемы запросов и ответов.',
+    link: '/api/ui',
+    linkLabel: 'Открыть раздел',
+  },
+  {
+    title: 'База данных',
+    icon: '🗄️',
+    description: 'Концептуальная, логическая и физическая модели данных. ERD-диаграммы и описание сущностей.',
+    link: '/docs/database/data-model',
+    linkLabel: 'Открыть раздел',
+  },
+  {
+    title: 'Стейкхолдеры',
+    icon: '👥',
+    description: 'Классификация стейкхолдеров по матрице RACI. Вопросы для интервью по каждой группе.',
+    link: '/docs/scenarios/stakeholders',
+    linkLabel: 'Открыть раздел',
+  },
+  {
+    title: 'Стратегия',
+    icon: '🚀',
+    description: 'Стратегия платформизации, целевые сегменты, модель монетизации и дорожная карта версий.',
+    link: '/docs/scenarios/platform-strategy',
+    linkLabel: 'Открыть раздел',
   },
 ];
 
-function Feature({Svg, title, description}) {
+function Feature({icon, title, description, link, linkLabel}) {
   return (
     <div className={clsx('col col--4')}>
-      <div className="text--center">
-        <Svg className={styles.featureSvg} role="img" />
-      </div>
-      <div className="text--center padding-horiz--md">
-        <Heading as="h3">{title}</Heading>
-        <p>{description}</p>
+      <div className={clsx('card', styles.featureCard)}>
+        <div className="card__header">
+          <div className={styles.featureIcon}>{icon}</div>
+          <Heading as="h3">{title}</Heading>
+        </div>
+        <div className="card__body">
+          <p>{description}</p>
+        </div>
+        <div className="card__footer">
+          <Link className="button button--primary button--sm" to={link}>
+            {linkLabel}
+          </Link>
+        </div>
       </div>
     </div>
   );
