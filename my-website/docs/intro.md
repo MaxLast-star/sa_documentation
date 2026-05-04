@@ -59,4 +59,5 @@ description: Система мониторинга качества металл
 - [Архитектура](/docs/architecture/process) — процессы, хранилища, асинхронные взаимодействия
 - [API](/docs/api/ui-api) — контракты для UI и асинхронных сервисов
 - [База данных](/docs/database/data-model) — модель данных и ERD
-- [Сценарии](/docs/scenarios/use-cases) — Use Cases и стейкхолдеры
+- [Стейкхолдеры](/docs/scenarios/stakeholders) — RACI и вопросы для интервью
+- [Платформизация](/docs/scenarios/platform-strategy) — стратегия развития продукта

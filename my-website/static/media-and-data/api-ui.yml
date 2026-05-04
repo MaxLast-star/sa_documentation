@@ -1,0 +1,450 @@
+openapi: 3.0.3
+
+info:
+  title: Quality Monitoring System API
+  version: 1.0.0
+  description: API системы мониторинга качества металлопродукции с чат-ИИ и генерацией справок
+
+servers:
+  - url: /api/v1
+
+tags:
+  - name: Auth
+    description: Методы авторизации
+  - name: Chats
+    description: Работа с чатами и сообщениями
+  - name: Reports
+    description: Работа со справками
+
+paths:
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      security:
+        - BearerAuth: []
+      summary: Авторизация пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: 
+                - login
+                - password
+              properties:
+                login:
+                  type: string
+                password:
+                  type: string
+      responses:
+        "200":
+          description: Успешная авторизация
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    $ref: "#/components/schemas/User"
+        4XX: 
+            description: error
+            content: 
+              application/json: 
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+  /chats:
+    get:
+      tags: [Chats]
+      summary: Получить список чатов
+      responses:
+        "200":
+          description: Список чатов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ChatListItem"
+        4XX: 
+            description: error
+            content: 
+              application/json: 
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Chats]
+      summary: Создать новый чат
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+      responses:
+        "201":
+          description: Чат создан
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Chat"
+        4XX: 
+            description: error
+            content: 
+              application/json: 
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+  /chats/search:
+    get:
+      tags: [Chats]
+      summary: Поиск чатов
+      parameters:
+        - name: text
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Результаты поиска
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Chat"
+        4XX: 
+            description: error
+            content: 
+              application/json: 
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+  /chats/{id}:
+    get:
+      tags: [Chats]
+      summary: Получить чат по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Чат
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Chat"
+        4XX: 
+            description: error
+            content: 
+              application/json: 
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+  /chats/{id}/messages:
+    post:
+      tags: [Chats]
+      summary: Отправить сообщение в чат
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+                type: object
+                required:
+                  - content
+                properties:
+                  content:
+                    type: string
+      responses:
+        "200":
+          description: Ответ ИИ
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Message"
+        4XX: 
+            description: error
+            content: 
+              application/json: 
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+  /reports:
+    get:
+      tags: [Reports]
+      summary: Получить список справок
+      parameters: 
+        # Пагинация
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+          description: Номера страницы
+        - name: pagesize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 8
+          description: Количество элементов на страницу
+
+          # Поиск
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Поиск по названию или содержимому
+
+          #Сортировка
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum: [createdAt, title, status, available]
+
+        - name: order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+
+      responses:
+        "200":
+          description: Список справок
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Report"
+        4XX: 
+            description: error
+            content: 
+              application/json: 
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Reports]
+      summary: Создать новую справку (ручную)
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReportCreateRequest"
+      responses:
+        "201":
+          description: Справка создана
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Report"
+        4XX: 
+            description: error
+            content: 
+              application/json: 
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+  /reports/{id}:
+    get:
+      tags: [Reports]
+      summary: Получить справку по ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Справка
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Report"
+        4XX: 
+            description: error
+            content: 
+              application/json: 
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+  /reports/{templateId}/generate:
+    post:
+      tags: [Reports]
+      summary: Сформировать справку по шаблону
+      parameters:
+        - name: templateId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "201":
+          description: Справка сгенерирована
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Report"
+        4XX: 
+            description: error
+            content: 
+              application/json: 
+                schema:
+                  $ref: '#/components/schemas/ErrorResponse'
+
+
+components:
+  securitySchemes:
+      BearerAuth:
+        type: http
+        scheme: bearer
+        bearerFormat: JWT
+        description: Используется JWT Bearer authentication т.к. API предпологает авторизованный доступ пользователя
+
+  schemas:
+
+    User:
+      type: object
+      description: Схема описывает данные пользователя системы
+      properties:
+        id:
+          type: integer
+          description: id пользователя
+          example: 123456
+        fullName:
+          type: string
+          description: ФИО сотрдуника
+          example: "Иванов Иван Иванович"
+        role:
+          type: string
+          enum: [ENGINEER, ANALYST, MANAGER]
+          description: роль пользователя
+          example: ENGINEER
+
+    Chat:
+      type: object
+      description: Полная информация о чате, включая сообщения
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/Message"
+
+    Message:
+      type: object
+      properties:
+        id:
+          type: string
+          description: id сообщения
+          example: "C-123"
+        sender:
+          type: string
+          enum: [USER, AI]
+          description: Автор сообщения
+          example: USER
+        timestamp:
+          type: string
+          format: date-time
+          description: Время отправки
+          example: "2021-01-30T08:30:00Z"
+        content:
+          type: string
+          description: Содержимое сообщения
+          example: "В данном фрагменте текста ..."
+
+    Report:
+      type: object
+      properties:
+        id:
+          type: string
+          description: id справки
+          example: "A001"
+        templateID:
+          type: string
+          description: id шаблона справки
+          example: "S01"
+        title:
+          type: string
+          description: Заголовок
+          example: "Отчет по выпуску годного"
+        createdAt:
+          type: string
+          format: date-time
+          description: Дата и время создания справки
+          example: "2021-01-30T08:30:00Z"
+        createdBy:
+          $ref: '#/components/schemas/User'
+        status:
+          type: string
+          enum: [READY, PROCESSING, ERROR]
+          description: Статус справки
+          example: "READY"
+        body:
+          type: string
+          description: Содержимое справки
+
+    ReportCreateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Название создаваемой справки
+          example: "Влияние температуры прокатуи на толщину листа"
+        body:
+          type: string
+          description: Содержимое справки
+          example: "Данная справкиа отражает ..."
+
+    ErrorResponse:
+      description: Схема описывает все ошибкт которые мы будем получать от сервера
+      type: object
+      required: 
+        - code
+        - error
+      properties: 
+        code:
+          type: integer
+          description: Код ошибки
+          example: 404
+        error:
+          type: string
+          description: Описание ошибки
+          example: "Ресурс не найден"
+
+    ChatListItem:
+      type: object
+      description: Краткая информация о чате для списка
+      properties:
+        id:
+          type: string
+          example: "C-123"
+        title:
+          type: string
+          example: "Анализ текста"

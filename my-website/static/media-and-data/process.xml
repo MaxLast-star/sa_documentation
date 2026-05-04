@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" xmlns:dmndi="https://www.omg.org/spec/DMN/20191111/DMNDI/" xmlns:dc="http://www.omg.org/spec/DMN/20180521/DC/" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0ihchdp" name="DRD" namespace="http://camunda.org/schema/1.0/dmn" exporter="Camunda Modeler" exporterVersion="5.44.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.8.0">
+  <decision id="Decision_12dg2ym" name="Check_quality">
+    <decisionTable id="DecisionTable_1hj7v8g" hitPolicy="FIRST">
+      <input id="Input_1">
+        <inputExpression id="InputExpression_1" typeRef="string">
+          <text>Completeness</text>
+        </inputExpression>
+      </input>
+      <input id="InputClause_1qg8nyz">
+        <inputExpression id="LiteralExpression_1ucblis" typeRef="string">
+          <text>Volume</text>
+        </inputExpression>
+      </input>
+      <input id="InputClause_1lhx79b">
+        <inputExpression id="LiteralExpression_1l7bcff" typeRef="string">
+          <text>NoiseLevel</text>
+        </inputExpression>
+      </input>
+      <input id="InputClause_1ndn947">
+        <inputExpression id="LiteralExpression_195xlrh" typeRef="string">
+          <text>RetryCount</text>
+        </inputExpression>
+      </input>
+      <output id="Output_1" name="Status" typeRef="string" />
+      <output id="OutputClause_0hwfn68" name="FilterLevel" typeRef="string" />
+      <rule id="DecisionRule_1cubmfp">
+        <description>Уровень удовлетворительный, дополнительная проверка не нужна</description>
+        <inputEntry id="UnaryTests_04wwwwy">
+          <text>&gt;=95</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_00govok">
+          <text>&gt;=1000</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1a2zip9">
+          <text>&lt;=5</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0vef2pf">
+          <text></text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_115r95j">
+          <text>Accepted</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_0o2qy2w">
+          <text>None</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0fid2zf">
+        <description>Качество данных почти достаточное, необходимо провести легку обработку</description>
+        <inputEntry id="UnaryTests_0pe4il7">
+          <text>&gt;=90</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1e1wnhr">
+          <text>&gt;=500</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_11jrcfw">
+          <text>&lt;=10</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1rn7lo3">
+          <text>&lt;2</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_147cbo8">
+          <text>Rejected</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1wrvuu4">
+          <text>Basic</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0x0fx0y">
+        <description>Существенные нарушения, требуется повторное применнеие значительной фильтрации</description>
+        <inputEntry id="UnaryTests_1k42en1">
+          <text>&gt;=80</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1oshntx">
+          <text>&gt;=200</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0d190l0">
+          <text>&lt;=10</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1fpu0zd">
+          <text>&lt;3</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_101mxwb">
+          <text>Rejected</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1dclwq2">
+          <text>Deep</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_0vl7ibg">
+        <description>Критические ошибки, данные не подходят, необходимо применить значительную переработку</description>
+        <inputEntry id="UnaryTests_0e2762e">
+          <text>&lt;80</text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_098z9yg">
+          <text></text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_13hzhiy">
+          <text></text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1sbvkri">
+          <text>&lt;3</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_1b9mvy5">
+          <text>Rejected</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_0fc4eor">
+          <text>Critical</text>
+        </outputEntry>
+      </rule>
+      <rule id="DecisionRule_166d82g">
+        <description>Количество повторных фильтраций превышенно</description>
+        <inputEntry id="UnaryTests_1jk35uo">
+          <text></text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0n4act9">
+          <text></text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_1yw48m8">
+          <text></text>
+        </inputEntry>
+        <inputEntry id="UnaryTests_0xqgzns">
+          <text>&gt;=3</text>
+        </inputEntry>
+        <outputEntry id="LiteralExpression_0m366yl">
+          <text>Rejected</text>
+        </outputEntry>
+        <outputEntry id="LiteralExpression_1h2fstn">
+          <text>Critical</text>
+        </outputEntry>
+      </rule>
+    </decisionTable>
+  </decision>
+  <dmndi:DMNDI>
+    <dmndi:DMNDiagram>
+      <dmndi:DMNShape id="Decision_12dg2ym_di" dmnElementRef="Decision_12dg2ym">
+        <dc:Bounds height="80" width="180" x="1140" y="510" />
+      </dmndi:DMNShape>
+    </dmndi:DMNDiagram>
+  </dmndi:DMNDI>
+</definitions>

@@ -13,9 +13,9 @@ const config = {
   },
 
   url: 'https://MaxLast-star.github.io',
-  baseUrl: '/sa-documentation/',
+  baseUrl: '/sa_documentation/',
   organizationName: 'MaxLast-star',
-  projectName: 'sa-documentation',
+  projectName: 'sa_documentation',
   onBrokenLinks: 'warn',
   trailingSlash: false,
   deploymentBranch: 'gh-pages',
@@ -77,7 +77,7 @@ const config = {
             label: 'Документация',
           },
           {
-            href: 'https://github.com/MaxLast-star/sa-documentation',
+            href: 'https://github.com/MaxLast-star/sa_documentation',
             label: 'GitHub',
             position: 'right',
           },
