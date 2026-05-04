@@ -44,7 +44,13 @@ const config = {
     [
       'redocusaurus',
       {
-        specs: [],
+        specs: [
+          {
+            id: 'ui-api',
+            spec: 'https://MaxLast-star.github.io/sa_documentation/media-and-data/api-ui.yml',
+            route: '/api/ui',
+          },
+        ],
         theme: {
           primaryColor: '#1890ff',
         },
@@ -75,6 +81,11 @@ const config = {
             sidebarId: 'tutorialSidebar',
             position: 'left',
             label: 'Документация',
+          },
+          {
+            to: '/api/ui',
+            label: 'API Reference',
+            position: 'left',
           },
           {
             href: 'https://github.com/MaxLast-star/sa_documentation',
