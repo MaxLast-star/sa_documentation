@@ -1,6 +1,7 @@
 // @ts-check
 import {themes as prismThemes} from 'prism-react-renderer';
 import remarkSimplePlantUML from '@akebifiky/remark-simple-plantuml';
+import remarkMermaid from 'mdast-util-to-hast';
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -24,6 +25,12 @@ const config = {
     defaultLocale: 'ru',
     locales: ['ru'],
   },
+
+  markdown: {
+    mermaid: true,
+  },
+
+  themes: ['@docusaurus/theme-mermaid'],
 
   presets: [
     [
@@ -68,6 +75,9 @@ const config = {
       image: 'img/docusaurus-social-card.jpg',
       colorMode: {
         respectPrefersColorScheme: true,
+      },
+      mermaid: {
+        theme: {light: 'neutral', dark: 'dark'},
       },
       navbar: {
         title: 'SA Documentation',

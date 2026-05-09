@@ -24,26 +24,45 @@ description: Описание асинхронных взаимодействи�
 
 **Обоснование выбора RabbitMQ:** обеспечивает очередь задач на генерацию, надёжность доставки и возможность масштабирования в следующих версиях.
 
-### Сценарий работы
+### Sequence-диаграмма (PlantUML)
 
-```
-Пользователь → POST /api/v1/reports/{templateID}/generate
-    ↓
-Backend создаёт запись со статусом PROCESSING
-    ↓
-Запрос передаётся в очередь RabbitMQ
-    ↓
-Worker генерирует справку
-    ↓
-Статус меняется на READY
-    ↓
-Пользователь получает уведомление → скачивает PDF или открывает в UI
+```plantuml
+@startuml
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
+skinparam sequenceParticipant underline
+
+actor "Пользователь" as User
+participant "Frontend" as FE
+participant "Backend" as BE
+participant "RabbitMQ" as MQ
+participant "Worker" as W
+database "БД" as DB
+
+User -> FE: Запрос справки по шаблону
+FE -> BE: POST /api/v1/reports/{templateID}/generate
+BE -> DB: Создать запись\n(status = PROCESSING)
+DB --> BE: OK
+BE -> MQ: Отправить задачу в очередь
+BE --> FE: 202 Accepted (reportId)
+FE --> User: "Справка формируется..."
+
+MQ -> W: Получить задачу
+W -> DB: Получить шаблон и данные
+DB --> W: Данные
+W -> W: Сгенерировать справку
+W -> DB: Обновить статус (READY)\nСохранить bodyUrl
+DB --> W: OK
+W -> BE: Уведомление о готовности
+BE --> FE: Push-уведомление
+FE --> User: "Справка готова"
+@enduml
 ```
 
 ### Контракт (AsyncAPI)
 
 Формат данных: **JSON**  
-Спецификация: [asyncapi.yaml](https://buildin.ai/preview/8b707b28-cf80-4128-bb20-622b1b7f1202)
+Скачать спецификацию: [asyncapi.yaml](/media-and-data/asyncapi.yaml)
 
 ---
 
@@ -58,28 +77,56 @@ Worker генерирует справку
 
 **Обоснование выбора gRPC:** потоковая передача ответа, минимальная задержка, строгая типизация и формализованный контракт.
 
-### Сценарий работы
+### Sequence-диаграмма (PlantUML)
 
-**Если пользователь находится в чате:**
-```
-Сообщение → Backend → Сервис ИИ → gRPC стрим → Frontend
-                                                  ↓
-                                          "Эффект печати"
-```
+```plantuml
+@startuml
+skinparam sequenceArrowThickness 2
+skinparam roundcorner 10
 
-**Если пользователь покинул чат:**
-```
-Генерация продолжается на сервере
-    ↓
-Полный ответ сохраняется в БД
-    ↓
-При открытии чата → пользователь видит готовый ответ
-```
+actor "Пользователь" as User
+participant "Frontend" as FE
+participant "Backend" as BE
+participant "AI Сервис" as AI
+database "БД" as DB
 
-**Краевой случай — возврат до завершения генерации:**  
-Система определяет статус `PROCESSING` и отображает текущий прогресс. После завершения финальный результат сохраняется и становится доступным.
+== Пользователь в чате ==
+
+User -> FE: Отправить сообщение
+FE -> BE: POST /api/v1/chats/{id}/messages
+BE -> DB: Сохранить сообщение\n(status = PROCESSING)
+BE -> AI: gRPC StreamChat(message)
+
+loop Стриминг токенов
+    AI --> BE: StreamResponse(token)
+    BE --> FE: Server-Sent Event (token)
+    FE --> User: Отображение токена\n("эффект печати")
+end
+
+AI --> BE: StreamResponse(done=true)
+BE -> DB: Сохранить полный ответ\n(status = READY)
+BE --> FE: Конец стрима
+FE --> User: Ответ полностью отображён
+
+== Пользователь покинул чат ==
+
+User -> FE: Закрыть чат
+note over BE, AI: Генерация продолжается на сервере
+AI --> BE: Продолжение стрима
+BE -> DB: Сохранение накопленного ответа
+AI --> BE: StreamResponse(done=true)
+BE -> DB: Сохранить полный ответ\n(status = READY)
+
+User -> FE: Открыть чат снова
+FE -> BE: GET /api/v1/chats/{id}
+BE -> DB: Получить сообщения
+DB --> BE: Сообщения со статусом READY
+BE --> FE: Полный ответ
+FE --> User: Показать готовый ответ
+@enduml
+```
 
 ### Контракт (protobuf)
 
 Формат данных: **Protocol Buffers**  
-Спецификация: [gRPC.proto](https://buildin.ai/preview/1498fdce-35f9-4733-8aea-6d9f11280d11)
+Скачать спецификацию: [gRPC.proto](/media-and-data/gRPC.proto)

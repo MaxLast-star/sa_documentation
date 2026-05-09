@@ -1,98 +1,123 @@
 ---
 title: Модель данных (ERD)
 sidebar_position: 1
-description: Шаблон ERD-диаграммы системы мониторинга качества
+description: ERD-диаграмма системы мониторинга качества
 ---
 
 # Модель данных (ERD)
 
-:::caution Шаблон
-ERD-диаграмма будет добавлена после финального согласования модели данных с командой.  
-Ниже описаны сущности, связи и атрибуты на основе анализа требований.
-:::
+## Концептуальная модель
+
+![Концептуальная модель](/media-and-data/erd-conceptual.png)
 
 ---
 
-## Сущности и атрибуты
+## Логическая модель
 
-### users (Пользователи)
-| Поле | Тип | Описание |
-|------|-----|----------|
-| id | UUID PK | Идентификатор |
-| fullName | VARCHAR | Полное имя |
-| role | ENUM | ENGINEER / ANALYST / MANAGER |
-| login | VARCHAR UNIQUE | Логин |
-| password | VARCHAR | Хэш пароля |
-| email | VARCHAR | Email |
+![Логическая модель](/media-and-data/erd-logical.png)
 
-### chats (Чаты)
-| Поле | Тип | Описание |
-|------|-----|----------|
-| id | UUID PK | Идентификатор |
-| name | VARCHAR | Название чата |
-| createdAt | TIMESTAMP | Дата создания |
-| createdBy | UUID FK → users | Автор |
+Выделены сущности `role` и `report_status`, т.к. в процессе развития системы могут добавляться роли и статусы — использовать enum нецелесообразно. Применён паттерн **L2**.
 
-### messages (Сообщения)
-| Поле | Тип | Описание |
-|------|-----|----------|
-| id | UUID PK | Идентификатор |
-| chatId | UUID FK → chats | Принадлежность чату |
-| sender | ENUM | USER / AI |
-| timestamp | TIMESTAMP | Время отправки |
-| content | TEXT | Содержимое |
-| status | ENUM | READY / PROCESSING |
+Применён паттерн **L3** — история изменений для сущности `report_status_history`. Справки меняют статус во время жизненного цикла (`PROCESSING`, `READY`, `ERROR`) и его необходимо отслеживать.
 
-### reports (Справки)
-| Поле | Тип | Описание |
-|------|-----|----------|
-| id | UUID PK | Идентификатор |
-| templateId | INTEGER FK → templates | Шаблон |
-| title | VARCHAR | Заголовок |
-| createdAt | TIMESTAMP | Дата создания |
-| createdBy | UUID FK → users | Автор |
-| status | ENUM | READY / PROCESSING / ERROR |
-| bodyUrl | VARCHAR | Ссылка на body в Object Storage |
-
-### templates (Шаблоны справок)
-| Поле | Тип | Описание |
-|------|-----|----------|
-| id | INTEGER PK | Идентификатор |
-| name | VARCHAR | Название шаблона |
-| description | TEXT | Описание |
-| parameters | JSONB | Параметры шаблона (гибкая схема) |
-| body | TEXT | Тело шаблона |
-
-### sensor_data (Данные датчиков)
-| Поле | Тип | Описание |
-|------|-----|----------|
-| id | UUID PK | Идентификатор |
-| equipmentId | VARCHAR | ID оборудования |
-| timestamp | TIMESTAMP | Время снятия показания |
-| parameterName | VARCHAR | Название параметра |
-| parameterValue | FLOAT | Значение |
-| unit | VARCHAR | Единица измерения |
-
-### system_logs (Логи)
-| Поле | Тип | Описание |
-|------|-----|----------|
-| id | UUID PK | Идентификатор |
-| timestamp | TIMESTAMP | Время события |
-| level | ENUM | INFO / WARN / ERROR |
-| source | VARCHAR | Источник события |
-| message | TEXT | Текст лога |
-| userId | UUID FK → users | Пользователь (опционально) |
+Выделена сущность `User_Role` (паттерн **L1**) для связи ролей и пользователя — у одного пользователя может быть несколько ролей.
 
 ---
 
-## Связи между сущностями
+## Физическая модель
 
-```
-users ──< chats         (один пользователь — много чатов)
-chats ──< messages      (один чат — много сообщений)
-users ──< reports       (один пользователь — много справок)
-templates ──< reports   (один шаблон — много справок)
-users ──< system_logs   (пользователь может фигурировать в логах)
+![Физическая модель](/media-and-data/erd-physical.png)
+
+Применён паттерн **Р1** — горячие данные (`chat_message`, `report_status`) вынесены в отдельные таблицы.
+
+Применён паттерн **Р4** — индексация в таблицах `report`, `chat`, `chat_message`.
+
+---
+
+## Диаграмма связей (Mermaid ERD)
+
+```mermaid
+erDiagram
+    users {
+        UUID id PK
+        VARCHAR fullName
+        VARCHAR login
+        VARCHAR password
+        VARCHAR email
+    }
+    roles {
+        INTEGER id PK
+        VARCHAR name
+    }
+    user_roles {
+        UUID userId FK
+        INTEGER roleId FK
+    }
+    chats {
+        UUID id PK
+        VARCHAR name
+        TIMESTAMP createdAt
+        UUID createdBy FK
+    }
+    messages {
+        UUID id PK
+        UUID chatId FK
+        VARCHAR sender
+        TIMESTAMP timestamp
+        TEXT content
+        VARCHAR status
+    }
+    templates {
+        INTEGER id PK
+        VARCHAR name
+        TEXT description
+        JSONB parameters
+        TEXT body
+    }
+    reports {
+        UUID id PK
+        INTEGER templateId FK
+        VARCHAR title
+        TIMESTAMP createdAt
+        UUID createdBy FK
+        VARCHAR bodyUrl
+    }
+    report_status {
+        INTEGER id PK
+        VARCHAR name
+    }
+    report_status_history {
+        UUID id PK
+        UUID reportId FK
+        INTEGER statusId FK
+        TIMESTAMP changedAt
+    }
+    sensor_data {
+        UUID id PK
+        VARCHAR equipmentId
+        TIMESTAMP timestamp
+        VARCHAR parameterName
+        FLOAT parameterValue
+        VARCHAR unit
+    }
+    system_logs {
+        UUID id PK
+        TIMESTAMP timestamp
+        VARCHAR level
+        VARCHAR source
+        TEXT message
+        UUID userId FK
+    }
+
+    users ||--o{ user_roles : "имеет"
+    roles ||--o{ user_roles : "назначена"
+    users ||--o{ chats : "создаёт"
+    chats ||--o{ messages : "содержит"
+    users ||--o{ reports : "создаёт"
+    templates ||--o{ reports : "используется в"
+    reports ||--o{ report_status_history : "имеет историю"
+    report_status ||--o{ report_status_history : "фиксируется в"
+    users ||--o{ system_logs : "фигурирует в"
 ```
 
 ---
@@ -101,7 +126,7 @@ users ──< system_logs   (пользователь может фигурир�
 
 | Сущность | Хранилище |
 |----------|-----------|
-| users, chats, messages, reports, templates | PostgreSQL |
+| users, roles, chats, messages, reports, templates | PostgreSQL |
 | sensor_data | TimescaleDB (Time-Series) |
 | system_logs, chats (поиск) | Elasticsearch |
 | reports.body (файлы) | Object Storage (S3-совместимый) |
