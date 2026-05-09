@@ -1,0 +1,119 @@
+asyncapi: 3.1.0
+info:
+  title: Сервис генерации справок
+  version: 1.0.0
+  description: Асинхронное взаимодействие для генерации справок в системе мониторинга
+    качества
+
+servers:
+  rabbitmq:
+    host: 'localhost:5672'
+    protocol: amqp
+    description: RabbitMQ broker
+
+channels:
+  reports.generate:
+    address: reports.generate
+    messages:
+      publishReportGeneration.message:
+        $ref: '#/components/messages/ReportGenerateRequest'
+    description: Канал для отправки задач на генерацию справок
+
+  reports.generated:
+    address: reports.generated
+    messages:
+      subscribeReportGenerated.message:
+        $ref: '#/components/messages/ReportGeneratedEvent'
+    description: Канал для уведомления о завершении генерации справки
+
+operations:
+  publishReportGeneration:
+    action: receive
+    channel:
+      $ref: '#/channels/reports.generate'
+    summary: Запрос на генерацию справки
+    messages:
+      - $ref: '#/channels/reports.generate/messages/publishReportGeneration.message'
+
+  subscribeReportGenerated:
+    action: send
+    channel:
+      $ref: '#/channels/reports.generated'
+    summary: Справка успешно сгенерирована или произошла ошибка
+    messages:
+      - $ref: '#/channels/reports.generated/messages/subscribeReportGenerated.message'
+
+components:
+  messages:
+    ReportGenerateRequest:
+      name: ReportGenerateRequest
+      title: Запрос на генерацию справки
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/ReportGenerateRequestPayload'
+
+    ReportGeneratedEvent:
+      name: ReportGeneratedEvent
+      title: Событие завершения генерации справки
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/ReportGeneratedEventPayload'
+
+  schemas:
+    ReportGenerateRequestPayload:
+      type: object
+      required:
+        - reportId
+        - templateId
+        - requestedBy
+        - createdAt
+      properties:
+        reportId:
+          type: string
+          description: id справки
+          example: R-123
+        templateId:
+          type: string
+          description: id шаблона
+          example: T-01
+        requestedBy:
+          type: string
+          description: id пользователя
+          example: U-456
+        createdAt:
+          type: string
+          format: date-time
+          description: Время создания запроса
+          
+    ReportGeneratedEventPayload:
+      type: object
+      required:
+        - reportId
+        - status
+        - completedAt
+      properties:
+        reportId:
+          type: string
+          description: ID справки
+          example: R-123
+        status:
+          type: string
+          enum:
+            - READY
+            - ERROR
+          description: Статус генерации
+        completedAt:
+          type: string
+          format: date-time
+          description: Время завершения
+        downloadUrl:
+          type: string
+          description: Ссылка на скачивание сгенерированной справки
+          example: "https://server/api/reports/R-123/download"
+        previewUrl:
+          type: string
+          description: URL получения данных для отображения справки в UI
+          example: "https://api.company.com/reports/R-123/preview"
+        errorMessage:
+          type: string
+          description: Описание ошибки (если status = ERROR)

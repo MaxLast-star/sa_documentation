@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package ai.chat.v1;
+
+// Запрос пользователя
+message ChatRequest {
+  string chat_id = 1;
+  string message_id = 2;
+  string user_id = 3;
+  string text = 4;
+  int64 timestamp = 5;
+}
+
+// Часть ответа (стрим)
+message ChatResponseChunk {
+  string chat_id = 1;
+  string message_id = 2;
+  string chunk = 3;
+  bool is_final = 4;
+  int64 timestamp = 5;
+}
+
+// Финальный ответ
+message ChatFinalMessage {
+  string chat_id = 1;
+  string message_id = 2;
+  string full_text = 3;
+  int64 completed_at = 4;
+}
+
+// gRPC сервис
+service AIChatService {
+
+  // Стриминг ответа
+  rpc GenerateStream (ChatRequest)
+      returns (stream ChatResponseChunk);
+
+  // Получение финального ответа (для повторного открытия чата)
+  rpc GetFinalMessage (ChatRequest)
+      returns (ChatFinalMessage);
+}
