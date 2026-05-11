@@ -4,7 +4,7 @@ sidebar_position: 1
 description: BPMN-диаграмма процесса сбора данных и DMN-таблица проверки качества
 ---
 
-import BpmnViewer from '@site/src/components/BpmnViewer';
+![BPMN диаграмма](../../static/media-and-data/lp.png)
 
 # Процесс сбора данных (BPMN)
 
