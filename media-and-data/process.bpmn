@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:zeebe="http://camunda.org/schema/zeebe/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_0m8h3fz" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.44.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.8.0">
+  <bpmn:collaboration id="Collaboration_1xt54kn">
+    <bpmn:participant id="Participant_0s7f29q" name="LLM модель" />
+    <bpmn:participant id="Participant_0ir7uet" name="Аналитики" />
+    <bpmn:participant id="Participant_01lyvsp" name="Система сбора данных" processRef="Process_1efigwt" />
+    <bpmn:participant id="Participant_1a62jx9" name="IT отдел" />
+    <bpmn:messageFlow id="Flow_14ipbla" name="Вызов системы" sourceRef="Participant_0s7f29q" targetRef="Event_04oc79r" />
+    <bpmn:messageFlow id="Flow_17i89xx" sourceRef="Event_025i4fb" targetRef="Participant_1a62jx9" />
+    <bpmn:messageFlow id="Flow_050ph44" name="Информация по ошибке" sourceRef="Event_1rnlmzq" targetRef="Participant_0ir7uet" />
+    <bpmn:messageFlow id="Flow_0qn6ryy" sourceRef="Event_0nnd2t0" targetRef="Participant_0s7f29q" />
+  </bpmn:collaboration>
+  <bpmn:process id="Process_1efigwt" name="Запрос и обработка данных" isExecutable="true">
+    <bpmn:laneSet id="LaneSet_1y0ojms" />
+    <bpmn:dataStoreReference id="DataStoreReference_0actuq0" />
+    <bpmn:serviceTask id="Activity_08bh4ye" name="Проверка данных">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="check_data" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_07m5vwi</bpmn:incoming>
+      <bpmn:outgoing>Flow_0864dc5</bpmn:outgoing>
+      <bpmn:property id="Property_01e8a93" name="__targetRef_placeholder" />
+      <bpmn:dataInputAssociation id="DataInputAssociation_1nnn6a2">
+        <bpmn:sourceRef>DataStoreReference_0actuq0</bpmn:sourceRef>
+        <bpmn:targetRef>Property_01e8a93</bpmn:targetRef>
+      </bpmn:dataInputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Activity_1j1efx0" name="Запрос данных в базу">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="request_database" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0xofkb1</bpmn:incoming>
+      <bpmn:outgoing>Flow_07m5vwi</bpmn:outgoing>
+      <bpmn:dataOutputAssociation id="DataOutputAssociation_10uignl">
+        <bpmn:targetRef>DataStoreReference_0actuq0</bpmn:targetRef>
+      </bpmn:dataOutputAssociation>
+    </bpmn:serviceTask>
+    <bpmn:startEvent id="Event_04oc79r">
+      <bpmn:outgoing>Flow_0xofkb1</bpmn:outgoing>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_1bvoy2j" messageRef="Message_3c4ens5" />
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="Gateway_0pfepih" name="Качество удовлетворяет?" default="Flow_1tdu2ki">
+      <bpmn:incoming>Flow_13vym2q</bpmn:incoming>
+      <bpmn:outgoing>Flow_1tdu2ki</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1szmc12</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Activity_1050k8g" name="Проверка качества данных">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="Check quality" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0as64i2</bpmn:incoming>
+      <bpmn:outgoing>Flow_13vym2q</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_0wmiyze" name="Количество повторных фильтраций?">
+      <bpmn:incoming>Flow_1szmc12</bpmn:incoming>
+      <bpmn:outgoing>Flow_0hhz3j4</bpmn:outgoing>
+      <bpmn:outgoing>Flow_12o9lbi</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Activity_1vd2r4a" name="Фильтрация и очистка данных">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="Cleaning data" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1giy6tq</bpmn:incoming>
+      <bpmn:outgoing>Flow_0as64i2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_0gzy2kt">
+      <bpmn:incoming>Flow_0864dc5</bpmn:incoming>
+      <bpmn:incoming>Flow_12o9lbi</bpmn:incoming>
+      <bpmn:outgoing>Flow_1giy6tq</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_1q9pngd">
+      <bpmn:incoming>Flow_1bu2pvm</bpmn:incoming>
+      <bpmn:incoming>Flow_0hyxdce</bpmn:incoming>
+      <bpmn:outgoing>Flow_0tj2ak7</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:serviceTask id="Activity_02brli8" name="Занести ошибку в log файлы">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="Record an error" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0tj2ak7</bpmn:incoming>
+      <bpmn:outgoing>Flow_0yh6ufh</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:parallelGateway id="Gateway_0zqmtv4">
+      <bpmn:incoming>Flow_0yh6ufh</bpmn:incoming>
+      <bpmn:outgoing>Flow_19cct6x</bpmn:outgoing>
+      <bpmn:outgoing>Flow_0gcwgti</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:intermediateThrowEvent id="Event_025i4fb" name="Уведомить IT отдел">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="Send Notification IT" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_19cct6x</bpmn:incoming>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_12qccd4" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:boundaryEvent id="Event_1d0k9z8" name="Ошибка запроса" attachedToRef="Activity_1j1efx0">
+      <bpmn:outgoing>Flow_1bu2pvm</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_1ovt22d" />
+    </bpmn:boundaryEvent>
+    <bpmn:boundaryEvent id="Event_0jh1bnl" name="Данные не получены или содержат ошибку" attachedToRef="Activity_08bh4ye">
+      <bpmn:outgoing>Flow_0hyxdce</bpmn:outgoing>
+      <bpmn:errorEventDefinition id="ErrorEventDefinition_1aoljy4" />
+    </bpmn:boundaryEvent>
+    <bpmn:sequenceFlow id="Flow_07m5vwi" sourceRef="Activity_1j1efx0" targetRef="Activity_08bh4ye" />
+    <bpmn:sequenceFlow id="Flow_0864dc5" sourceRef="Activity_08bh4ye" targetRef="Gateway_0gzy2kt" />
+    <bpmn:sequenceFlow id="Flow_0xofkb1" sourceRef="Event_04oc79r" targetRef="Activity_1j1efx0" />
+    <bpmn:sequenceFlow id="Flow_1tdu2ki" name="Да" sourceRef="Gateway_0pfepih" targetRef="Gateway_0a2sx0v" />
+    <bpmn:sequenceFlow id="Flow_0gcwgti" sourceRef="Gateway_0zqmtv4" targetRef="Gateway_0a2sx0v" />
+    <bpmn:sequenceFlow id="Flow_13vym2q" sourceRef="Activity_1050k8g" targetRef="Gateway_0pfepih" />
+    <bpmn:sequenceFlow id="Flow_1szmc12" name="Нет" sourceRef="Gateway_0pfepih" targetRef="Gateway_0wmiyze">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=not(negand)</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_0hhz3j4" name=">= 3" sourceRef="Gateway_0wmiyze" targetRef="Gateway_1qt4ufu">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=>=3</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_12o9lbi" name="&lt;3" sourceRef="Gateway_0wmiyze" targetRef="Gateway_0gzy2kt">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">=&lt;3</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1giy6tq" sourceRef="Gateway_0gzy2kt" targetRef="Activity_1vd2r4a" />
+    <bpmn:sequenceFlow id="Flow_1bu2pvm" sourceRef="Event_1d0k9z8" targetRef="Gateway_1q9pngd" />
+    <bpmn:sequenceFlow id="Flow_0hyxdce" sourceRef="Event_0jh1bnl" targetRef="Gateway_1q9pngd" />
+    <bpmn:sequenceFlow id="Flow_0tj2ak7" sourceRef="Gateway_1q9pngd" targetRef="Activity_02brli8" />
+    <bpmn:sequenceFlow id="Flow_0yh6ufh" sourceRef="Activity_02brli8" targetRef="Gateway_0zqmtv4" />
+    <bpmn:sequenceFlow id="Flow_19cct6x" sourceRef="Gateway_0zqmtv4" targetRef="Event_025i4fb" />
+    <bpmn:endEvent id="Event_0nnd2t0" name="Передача данных в LLM модель">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="Send to LLM" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_147llon</bpmn:incoming>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_0r82di6" />
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1rjem9q" sourceRef="Gateway_1qt4ufu" targetRef="Event_1rnlmzq" />
+    <bpmn:sequenceFlow id="Flow_19nlzuj" sourceRef="Gateway_1qt4ufu" targetRef="Gateway_0a2sx0v" />
+    <bpmn:intermediateThrowEvent id="Event_1rnlmzq" name="Уведомить отдел аналитиков">
+      <bpmn:extensionElements>
+        <zeebe:taskDefinition type="Send Notification Anallit" />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1rjem9q</bpmn:incoming>
+      <bpmn:messageEventDefinition id="MessageEventDefinition_1wvhd65" />
+    </bpmn:intermediateThrowEvent>
+    <bpmn:parallelGateway id="Gateway_1qt4ufu">
+      <bpmn:incoming>Flow_0hhz3j4</bpmn:incoming>
+      <bpmn:outgoing>Flow_1rjem9q</bpmn:outgoing>
+      <bpmn:outgoing>Flow_19nlzuj</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:exclusiveGateway id="Gateway_0a2sx0v">
+      <bpmn:incoming>Flow_19nlzuj</bpmn:incoming>
+      <bpmn:incoming>Flow_1tdu2ki</bpmn:incoming>
+      <bpmn:incoming>Flow_0gcwgti</bpmn:incoming>
+      <bpmn:outgoing>Flow_147llon</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_147llon" sourceRef="Gateway_0a2sx0v" targetRef="Event_0nnd2t0" />
+  </bpmn:process>
+  <bpmn:message id="Message_3c4ens5" name="=Start_tool" />
+</bpmn:definitions>
