@@ -10,7 +10,7 @@ function BpmnViewerInner({ file }) {
   // baseUrl всегда заканчивается на '/', file не начинается с '/'
   // Итог локально:  '/' + 'media-and-data/process.bpmn' = '/media-and-data/process.bpmn'
   // Итог на gh-pages: '/sa_documentation/' + 'media-and-data/process.bpmn' = '/sa_documentation/media-and-data/process.bpmn'
-  const fileUrl = `${siteConfig.baseUrl}${file}`;
+  const fileUrl = "https://maxlast-star.github.io/sa_documentation/media-and-data/process.bpmn";
 
   useEffect(() => {
     async function loadBpmn() {
