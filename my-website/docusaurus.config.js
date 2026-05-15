@@ -93,6 +93,11 @@ const config = {
             label: 'Документация',
           },
           {
+            href: '/sa_documentation/mvp/',
+            label: '🖥 MVP Демо',
+            position: 'left',
+          },
+          {
             to: '/api/ui',
             label: 'API Reference',
             position: 'left',
